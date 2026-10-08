@@ -1,99 +1,103 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Telegram Bot Starter
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A simple and reusable starter for integrating the **Telegram Bot API** with **NestJS**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository uses [`node-telegram-bot-api`](https://github.com/yagop/node-telegram-bot-api) to provide an easy and type-safe way to build Telegram bots with NestJS.
 
-## Description
+## Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+* Telegram Bot API integration with NestJS
+* TypeScript support
+* Polling support
+* Webhook support through `node-telegram-bot-api`
+* Reusable `TelegramService`
+* Message and command handlers
+* Common Telegram send methods such as:
 
-## Project setup
+  * `sendMessage`
+  * `sendPhoto`
+* Environment variable validation with **Zod**
+* Configurable environment variables
 
-```bash
-$ pnpm install
+## Architecture
+
+### `TelegramService`
+
+`TelegramService` is the core service responsible for initializing the Telegram bot and registering handlers.
+
+The bot uses **polling** to receive messages by default.
+
+The service is exported, so it can be injected and used throughout your NestJS application.
+
+### `MessageHandler`
+
+Handles regular messages received from Telegram.
+
+### `StartHandler`
+
+Handles Telegram commands such as:
+
+```text
+/start
+/help
 ```
 
-## Compile and run the project
+Handlers are registered when the Telegram service is initialized:
 
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+```typescript
+private registerHandlers() {
+  this.startHandler.register(this.bot);
+  this.messageHandler.register(this.bot);
+}
 ```
 
-## Run tests
+## Example Use Case
 
-```bash
-# unit tests
-$ pnpm run test
+The example application sends **daily gold and oil prices** to a Telegram user.
 
-# e2e tests
-$ pnpm run test:e2e
+A cron job runs every day at noon:
 
-# test coverage
-$ pnpm run test:cov
+```text
+EVERY_DAY_AT_NOON
 ```
 
-## Deployment
+The prices are retrieved from **Alpha Vantage** and sent to the configured Telegram chat.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+To test the example, add your Telegram `chat_id`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+You can find your `chat_id` inside the `MessageHandler` when a message is received from Telegram.
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+### Subscription Flow
+
+For a production application, you can extend this example by:
+
+1. Saving users' `chat_id` values in your database.
+2. Allowing users to subscribe/unsubscribe.
+3. Running the daily cron job.
+4. Fetching all subscribed users.
+5. Sending the daily prices to each user.
+
+This turns the example into a simple Telegram notification system.
+
+## Environment Variables
+
+Environment variables are validated with **Zod** to make sure required configuration such as the Telegram bot token is available.
+
+Example:
+
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Getting Started
 
-## Resources
+```bash
+npm install
+npm run start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Create a Telegram bot using **BotFather**, add your bot token to the environment variables, and start the NestJS application.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-# telegram-nest
+Built with **NestJS + TypeScript + node-telegram-bot-api**.
